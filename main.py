@@ -84,9 +84,11 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
             else:
                 entry["jlptLevel"] = [{ "kana":jlptData[kana] }]
 
+# update the whole dict file with added jlpt and furigana data.
 jmdictToJSON = json.dumps(jmdictData, ensure_ascii=False)
 
 with open("jmdictExtended.json", "w", encoding="utf-8-sig") as writeFile:
     writeFile.write(jmdictToJSON)
 
+# remove temporary directory after file is made.
 shutil.rmtree("temp/")
