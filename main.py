@@ -6,6 +6,13 @@ from zipfile import ZipFile
 from urllib.request import urlopen
 import shutil
 
+def getLatestReleaseURL(url, fileName):
+    jlptReleaseURL = requests.get(url, headers=headers)
+    for asset in jlptReleaseURL.json()["assets"]:
+        if fileName in asset["browser_download_url"]:
+            jlptReleaseURL = asset["browser_download_url"]
+            return jlptReleaseURL
+
 def downloadAndExtract(url, pathTo="./temp"):
     response = urlopen(url)
     zipfile = ZipFile(BytesIO(response.read()))
@@ -19,27 +26,18 @@ headers = {
 }
 
 # JLPT level data:
-jlptReleaseURL = requests.get("https://api.github.com/repos/Bluskyo/JLPT_Vocabulary/releases/latest", headers=headers)
-for asset in jlptReleaseURL.json()["assets"]:
-    if "JLPTWords.json" in asset["browser_download_url"]:
-        jlptReleaseURL = asset["browser_download_url"]
-        break
+jlptReleaseURL = getLatestReleaseURL("https://api.github.com/repos/Bluskyo/JLPT_Vocabulary/releases/latest", "JLPTWords.json")
 jlptResponse = requests.get(jlptReleaseURL)
 jlptData = jlptResponse.json()
 
 # Furigana Data:
 # get latest release url:
-FuriganaReleaseURL = requests.get("https://api.github.com/repos/Doublevil/JmdictFurigana/releases/latest", headers=headers)
-for asset in FuriganaReleaseURL.json()["assets"]:
-    if "JmdictFurigana.json.zip" in asset["browser_download_url"]:
-        FuriganaReleaseURL = asset["browser_download_url"]
-        break
-
-# file is zipped download and unzip to temp dir.
+FuriganaReleaseURL = getLatestReleaseURL("https://api.github.com/repos/Doublevil/JmdictFurigana/releases/latest", "JmdictFurigana.json.zip")
+# file is zipped downloaded and unziped to temp dir.
 furiganaFileName = downloadAndExtract(FuriganaReleaseURL, "./temp")
-
 # read unzipped file and store data in furiganaData object
 furiganaData = {}
+
 with open(f"temp/{furiganaFileName}", "r", encoding="utf-8-sig") as file:
     data = json.load(file)
     # reading field is redundant, add text and furigana.
@@ -54,11 +52,10 @@ for asset in jmdictReleaseURL.json()["assets"]:
     if re.search(fileRegex, link):
         jmdictReleaseURL = link
         break
-
 # file is zipped download and unzip to temp dir.
 jmdictFileName = downloadAndExtract(jmdictReleaseURL, "./temp")
-
 jmdictData = {}
+
 with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
     jmdictData = json.load(file)
 
@@ -66,8 +63,12 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
         for kanjiObject in entry["kanji"]:
             kanji = kanjiObject.get("text")
 
-            if (furiganaData.get(kanji)):
-                entry["furigana"] = furiganaData[kanji]
+            if furiganaData.get(kanji):
+                if "furigana" not in entry:
+                    entry["furigana"] = [{ kanji : furiganaData[kanji] }]
+                else:
+                    entry["furigana"].append({ kanji : furiganaData[kanji] })
+
             if (not jlptData.get(kanji)):
                 continue
             if (entry.get("jlptLevel") and jlptData.get(kanji)):
@@ -89,6 +90,7 @@ jmdictToJSON = json.dumps(jmdictData, ensure_ascii=False)
 
 with open("jmdictExtended.json", "w", encoding="utf-8-sig") as writeFile:
     writeFile.write(jmdictToJSON)
+    print("File done! name: jmdictExtended.json")
 
 # remove temporary directory after file is made.
 shutil.rmtree("temp/")
