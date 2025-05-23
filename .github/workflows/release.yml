@@ -72,10 +72,3 @@ jobs:
           files: |
             results/jmdictExtended.json
             results/jmdictExtended.json.zip
-
-      - uses: actions/upload-artifact@v4
-        with: 
-            name: jmdict_extended_report
-            path: jmdict_extended_report/
-            retention-days: 30
-    
