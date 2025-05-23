@@ -1,10 +1,12 @@
 import requests
 import re
 import json
-from io import BytesIO
-from zipfile import ZipFile
-from urllib.request import urlopen
 import shutil
+import os 
+
+from io import BytesIO
+from zipfile import ZipFile, ZIP_DEFLATED
+from urllib.request import urlopen
 
 def getLatestReleaseURL(url, fileName):
     jlptReleaseURL = requests.get(url, headers=headers)
@@ -59,7 +61,11 @@ jmdictData = {}
 with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
     jmdictData = json.load(file)
 
+    print("Adding data to JMDict!")
+
+    # looks through all words in jmdict. 
     for entry in jmdictData["words"]:
+        # for every word with kanji add furigana and jlpt level data.
         for kanjiObject in entry["kanji"]:
             kanji = kanjiObject.get("text")
 
@@ -68,29 +74,41 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
                     entry["furigana"] = [{ kanji : furiganaData[kanji] }]
                 else:
                     entry["furigana"].append({ kanji : furiganaData[kanji] })
-
             if (not jlptData.get(kanji)):
                 continue
             if (entry.get("jlptLevel") and jlptData.get(kanji)):
-                entry["jlptLevel"].append({ "kanji":jlptData[kanji] })
+                entry["jlptLevel"].append({ kanji:jlptData[kanji] })
             else:
-                entry["jlptLevel"] = [{ "kanji":jlptData[kanji] }]
+                entry["jlptLevel"] = [{ kanji:jlptData[kanji] }]
+        # for every reading/hiragana word add jlptlevel.
         for kanaObject in entry["kana"]:
             kana = kanaObject.get("text")
 
             if (not jlptData.get(kana)):
                 continue
             if (entry.get("jlptLevel") and jlptData.get(kana)):
-                entry["jlptLevel"].append({ "kana":jlptData[kana] })
+                entry["jlptLevel"].append({ kana:jlptData[kana] })
             else:
-                entry["jlptLevel"] = [{ "kana":jlptData[kana] }]
+                entry["jlptLevel"] = [{ kana:jlptData[kana] }]
 
 # update the whole dict file with added jlpt and furigana data.
 jmdictToJSON = json.dumps(jmdictData, ensure_ascii=False)
 
-with open("jmdictExtended.json", "w", encoding="utf-8-sig") as writeFile:
+currentDirectory = os.getcwd()
+isExists = os.path.exists(f"{currentDirectory}/results")
+if (not isExists):
+    print("Creating results directory!")
+    os.mkdir(f"{currentDirectory}/results")
+
+with open(f"results/jmdictExtended.json", "w", encoding="utf-8-sig") as writeFile:
     writeFile.write(jmdictToJSON)
     print("File done! name: jmdictExtended.json")
 
+with ZipFile(f"results/jmdictExtended.json.zip", "w", compression=ZIP_DEFLATED) as zip_file:
+    zip_file.write("results/jmdictExtended.json", arcname="jmdictExtended.json.zip")
+    print("Zip file done! name: jmdictExtended.json.zip")
+
 # remove temporary directory after file is made.
-shutil.rmtree("temp/")
+tempDelete = shutil.rmtree("temp/")
+print("Deleted deleted temporary files!")
+print("DONE...")
