@@ -4,7 +4,6 @@ on:
   push:
   schedule:
       - cron:  "0 1 * * 2"
-      #https://crontab.guru/#0_1_*_*_2
 
   workflow_dispatch:
     inputs:
@@ -25,6 +24,9 @@ on:
         description: "Environment to run tests against"
         type: environment
         required: true
+
+permissions:
+  contents: write
   
 jobs:
     
@@ -52,24 +54,24 @@ jobs:
       - name: Create tag with timestamp
         id: tag_version
         run: |
-          TAG="auto-release-$(date +'%Y%m%d')"
+          TAG="1.1.1-auto-release-$(date +'%Y-%m-%d')"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git tag $TAG
+          git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/Bluskyo/JMDict_Extended.git
           git push origin $TAG
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          token: ${{ secrets.GH_TOKEN }} 
           tag_name: ${{ steps.tag_version.outputs.tag }}
-          name: "Automated update for JMDict ${{ steps.tag_version.outputs.tag }}"
-          body: "This is an weekly automated release with data from the latest repositories."
+          name: "${{ steps.tag_version.outputs.tag }}"
+          body: "This is an weekly automated release with updated data from (mostly JMDict) the latest repositories."
           files: |
             results/jmdictExtended.json
             results/jmdictExtended.json.zip
-        env:
-          token: ${{ secrets.MY_PAT }}
 
       - uses: actions/upload-artifact@v4
         with: 
@@ -77,8 +79,3 @@ jobs:
             path: jmdict_extended_report/
             retention-days: 30
     
-
-
-#executeJob:      
-#publishJob:
-#    needs: executeJob
