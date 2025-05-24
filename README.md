@@ -9,3 +9,30 @@ This project combines data from these repositories: <br>
 https://github.com/scriptin/jmdict-simplified <br>
 https://github.com/Doublevil/JmdictFurigana <br>
 https://github.com/Bluskyo/JLPT_Vocabulary
+
+## Example on entry with both furigana and jlpt data added.
+The json follow the same structrue as jmdict-simplified but has these added properties on some entries: 
+```
+ "furigana": [
+    {
+      "挨拶": [
+        {
+          "ruby": "挨",
+          "rt": "あい"
+        },
+        {
+          "ruby": "拶",
+          "rt": "さつ"
+        }
+      ]
+    }
+  ],
+  "jlptLevel": [
+    {
+      "挨拶": "N3"
+    },
+    {
+      "あいさつ": "N4"
+    }
+  ]
+```
