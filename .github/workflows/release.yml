@@ -37,24 +37,35 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set Up Python
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.x"
           architecture: "x64"
 
-      - name: Install Dependencies 
+      - name: Install dependencies 
         run: |
             python -m pip install --upgrade pip
             python -m pip install requests
 
-      - name: Execute Code
-        run: python main.py 
+      - name: Run code
+        run: | 
+          python main.py 
+      
+      - name: Get current date
+        id: date
+        run: echo "date=$(date +'%Y-%d-%m')" >> "$GITHUB_OUTPUT"
 
-      - name: Create tag with timestamp
+      - name: Zip result file
+        run: | 
+          cd result
+          zip jmdictExtended-${{ steps.date.outputs.date }}.json.zip jmdictExtended-${{ steps.date.outputs.date }}.json
+          tar -czvf jmdictExtended-${{ steps.date.outputs.date }}.json.tar.gz jmdictExtended-${{ steps.date.outputs.date }}.json
+
+      - name: Create release tag with timestamp
         id: tag_version
         run: |
-          TAG="1.1.1-auto-release-$(date +'%Y-%m-%d')"
+          TAG="1.2.0-auto-release-${{ steps.date.outputs.date }}"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
@@ -62,13 +73,14 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.GH_TOKEN }}@github.com/Bluskyo/JMDict_Extended.git
           git push origin $TAG
 
-      - name: Create GitHub Release
+      - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          token: ${{ secrets.GH_TOKEN }} 
+          token: ${{ secrets.GH_TOKEN }}
           tag_name: ${{ steps.tag_version.outputs.tag }}
           name: "${{ steps.tag_version.outputs.tag }}"
-          body: "This is an weekly automated release with updated data from (mostly JMDict) the latest repositories."
+          body: "This is a weekly automated release with updated data from (mostly JMDict) the latest repositories."
           files: |
-            results/jmdictExtended.json
-            results/jmdictExtended.json.zip
+            result/jmdictExtended-${{ steps.date.outputs.date }}.json
+            result/jmdictExtended-${{ steps.date.outputs.date }}.json.zip
+            result/jmdictExtended-${{ steps.date.outputs.date }}.json.tar.gz

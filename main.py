@@ -7,6 +7,7 @@ import os
 from io import BytesIO
 from zipfile import ZipFile, ZIP_DEFLATED
 from urllib.request import urlopen
+from datetime import date
 
 def getLatestReleaseURL(url, fileName):
     jlptReleaseURL = requests.get(url, headers=headers)
@@ -95,18 +96,14 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
 jmdictToJSON = json.dumps(jmdictData, ensure_ascii=False)
 
 currentDirectory = os.getcwd()
-isExists = os.path.exists(f"{currentDirectory}/results")
-if (not isExists):
-    print("Creating results directory!")
-    os.mkdir(f"{currentDirectory}/results")
+os.mkdir(f"{currentDirectory}/result")
 
-with open(f"results/jmdictExtended.json", "w", encoding="utf-8-sig") as writeFile:
+today = date.today().strftime("%Y-%d-%m")
+
+# create file in result folder.
+with open(f"result/jmdictExtended-{today}.json", "w", encoding="utf-8-sig") as writeFile:
     writeFile.write(jmdictToJSON)
-    print("File done! name: jmdictExtended.json")
-
-with ZipFile(f"results/jmdictExtended.json.zip", "w", compression=ZIP_DEFLATED) as zip_file:
-    zip_file.write("results/jmdictExtended.json", arcname="jmdictExtended.json.zip")
-    print("Zip file done! name: jmdictExtended.json.zip")
+    print("File done!")
 
 # remove temporary directory after file is made.
 tempDelete = shutil.rmtree("temp/")
