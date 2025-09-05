@@ -54,7 +54,7 @@ jobs:
       
       - name: Get current date
         id: date
-        run: echo "date=$(date +'%Y-%d-%m')" >> "$GITHUB_OUTPUT"
+        run: echo "date=$(date +'%Y-%m-%d')" >> "$GITHUB_OUTPUT"
 
       - name: Zip result file
         run: | 
