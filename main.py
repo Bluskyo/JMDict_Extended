@@ -106,12 +106,25 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
         for kanaObject in entry["kana"]:
             kana = kanaObject.get("text")
 
+            if (pitchData.get(kana)):
+                entry["pitch_accent"] = [{
+                    "hatsuon" : [
+                        pitchData[kana]["hatsuon"]
+                    ],
+                    "acc_patts" : [
+                        pitchData[kana]["acc_patts"]
+                    ],
+                    "zo_patts" : [
+                        pitchData[kana]["zo_patts"]
+                    ]
+                }]
+
             if (not jlptData.get(kana)):
                 continue
-            if (entry.get("jlptLevel") and jlptData.get(kana)):
-                entry["jlptLevel"].append({ kana:jlptData[kana] })
+            if (entry.get("jlpt_level") and jlptData.get(kana)):
+                entry["jlpt_level"].append({ kana:jlptData[kana] })
             else:
-                entry["jlptLevel"] = [{ kana:jlptData[kana] }]
+                entry["jlpt_level"] = [{ kana:jlptData[kana] }]
 
 currentDirectory = os.getcwd()
 os.mkdir(f"{currentDirectory}/result")
