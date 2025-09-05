@@ -129,7 +129,7 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
 currentDirectory = os.getcwd()
 os.mkdir(f"{currentDirectory}/result")
 
-today = date.today().strftime("%Y-%d-%m")
+today = date.today().strftime("%Y-%m-%d")
 
 # create file in result folder.
 with open(f"result/jmdictExtended-{today}.json", "w", encoding="utf-8-sig") as writeFile:
