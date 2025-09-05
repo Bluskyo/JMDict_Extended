@@ -30,15 +30,14 @@ headers = {
 
 # JLPT level data:
 jlptReleaseURL = getLatestReleaseURL("https://api.github.com/repos/Bluskyo/JLPT_Vocabulary/releases/latest", "JLPTWords.json")
+print("Fetching latest release of JLPT_Vocabulary...")
 jlptResponse = requests.get(jlptReleaseURL)
 jlptData = jlptResponse.json()
 
 # Furigana Data:
-# get latest release url:
-FuriganaReleaseURL = getLatestReleaseURL("https://api.github.com/repos/Doublevil/JmdictFurigana/releases/latest", "JmdictFurigana.json.zip")
-# file is zipped downloaded and unziped to temp dir.
-furiganaFileName = downloadAndExtract(FuriganaReleaseURL, "./temp")
-# read unzipped file and store data in furiganaData object
+furiganaReleaseURL = getLatestReleaseURL("https://api.github.com/repos/Doublevil/JmdictFurigana/releases/latest", "JmdictFurigana.json.zip")
+print("Fetching latest release of JmdictFurigana...")
+furiganaFileName = downloadAndExtract(furiganaReleaseURL, "./temp")
 furiganaData = {}
 
 with open(f"temp/{furiganaFileName}", "r", encoding="utf-8-sig") as file:
@@ -47,24 +46,31 @@ with open(f"temp/{furiganaFileName}", "r", encoding="utf-8-sig") as file:
     for entry in data:
         furiganaData[entry["text"]] = entry["furigana"]
 
+# Pitch accent data:
+print("Reading wadoku pitch accents...")
+pitchData = {}
+with open("data/wadoku_pitchdb.json", "r", encoding="utf-8-sig") as file:
+    pitchData = json.load(file)
+
 # JMDict data: 
 jmdictReleaseURL = requests.get("https://api.github.com/repos/scriptin/jmdict-simplified/releases/latest", headers=headers)
+print("Fetching latest release of jmdict-simplified...")
 fileRegex = r"jmdict-eng-(?!.*common).*\.json\.zip$"
+
 for asset in jmdictReleaseURL.json()["assets"]:
     link = asset["browser_download_url"]
     if re.search(fileRegex, link):
         jmdictReleaseURL = link
         break
-# file is zipped download and unzip to temp dir.
+
 jmdictFileName = downloadAndExtract(jmdictReleaseURL, "./temp")
 jmdictData = {}
 
+print("Creating JMDict_Extended file...")
 with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
     jmdictData = json.load(file)
 
     print("Adding data to JMDict!")
-
-    # looks through all words in jmdict. 
     for entry in jmdictData["words"]:
         # for every word with kanji add furigana and jlpt level data.
         for kanjiObject in entry["kanji"]:
@@ -75,12 +81,27 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
                     entry["furigana"] = [{ kanji : furiganaData[kanji] }]
                 else:
                     entry["furigana"].append({ kanji : furiganaData[kanji] })
+
+            if (pitchData.get(kanji)):
+                entry["pitch_accent"] = [{
+                    "hatsuon" : [
+                        pitchData[kanji]["hatsuon"]
+                    ],
+                    "acc_patts" : [
+                        pitchData[kanji]["acc_patts"]
+                    ],
+                    "zo_patts" : [
+                        pitchData[kanji]["zo_patts"]
+                    ]
+                }]
+
             if (not jlptData.get(kanji)):
                 continue
-            if (entry.get("jlptLevel") and jlptData.get(kanji)):
-                entry["jlptLevel"].append({ kanji:jlptData[kanji] })
+            if (entry.get("jlpt_level") and jlptData.get(kanji)):
+                entry["jlpt_level"].append({ kanji : jlptData[kanji] })
             else:
-                entry["jlptLevel"] = [{ kanji:jlptData[kanji] }]
+                entry["jlpt_level"] = [{ kanji : jlptData[kanji] }]
+
         # for every reading/hiragana word add jlptlevel.
         for kanaObject in entry["kana"]:
             kana = kanaObject.get("text")
@@ -92,9 +113,6 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
             else:
                 entry["jlptLevel"] = [{ kana:jlptData[kana] }]
 
-# update the whole dict file with added jlpt and furigana data.
-jmdictToJSON = json.dumps(jmdictData, ensure_ascii=False)
-
 currentDirectory = os.getcwd()
 os.mkdir(f"{currentDirectory}/result")
 
@@ -102,10 +120,9 @@ today = date.today().strftime("%Y-%d-%m")
 
 # create file in result folder.
 with open(f"result/jmdictExtended-{today}.json", "w", encoding="utf-8-sig") as writeFile:
-    writeFile.write(jmdictToJSON)
-    print("File done!")
+    json.dump(jmdictData, writeFile, ensure_ascii=False)
 
 # remove temporary directory after file is made.
 tempDelete = shutil.rmtree("temp/")
-print("Deleted deleted temporary files!")
+print("Deleted temporary files!")
 print("DONE...")
