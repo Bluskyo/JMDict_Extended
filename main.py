@@ -62,7 +62,6 @@ with open(f"temp/{furiganaFileName}", "r", encoding="utf-8-sig") as file:
     # reading field is redundant, add text and furigana.
     for entry in data:
         furiganaData[entry["text"]] = entry["furigana"]
-        
 
 # JMDict data: 
 jmdictReleaseURL = requests.get("https://api.github.com/repos/scriptin/jmdict-simplified/releases/latest", headers=headers)
@@ -95,15 +94,15 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
             if furiganaData.get(kanji):
                 kanjiObject["furigana"] = furiganaData[kanji]
 
-            if (pitchData.get(kanji)):
-                entry["pitchAccent"] = {
+            if (pitchData.get(kanji)): 
+                entry["pitchAccent"][kanji] = {
                     "hatsuon" : pitchData[kanji]["hatsuon"][0],
                     "acc_patts" : pitchData[kanji]["acc_patts"][0],
                     "zo_patts" : pitchData[kanji]["zo_patts"][0]
                 }
 
             if (jlptData.get(kanji)):
-                entry["jlptLevel"] = { kanji : jlptData[kanji] }
+                entry["jlptLevel"][kanji] = { kanji : jlptData[kanji] }
 
         # for every reading/hiragana word add furigana, pitch accent and jlpt level data.
         for kanaObject in entry["kana"]:
@@ -121,16 +120,28 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
                 }
 
             if (jlptData.get(kana)):
-                entry["jlptLevel"] = { kana : jlptData[kana] }
+                entry["jlptLevel"][kana] = { kana : jlptData[kana] }
 
 today = date.today().strftime("%Y-%m-%d")
-
 currentDirectory = os.getcwd()
 path = f"{currentDirectory}/result/jmdictExtended-{today}.json"
 path = fileExists(path)
 
-with open(f"{path}", "w", encoding="utf-8-sig") as writeFile:
-    json.dump(jmdictData, writeFile, ensure_ascii=False)
+# write to file:
+beforeEntries = "{" + f"""
+"version": {json.dumps(jmdictData.get("version"), ensure_ascii=False)},
+"languages": {json.dumps(jmdictData.get("languages"), ensure_ascii=False)},
+"commonOnly": {json.dumps(jmdictData.get("commonOnly"), ensure_ascii=False)},
+"dictDate": {json.dumps(jmdictData.get("dictDate"), ensure_ascii=False)},
+"dictRevisions": {json.dumps(jmdictData.get("dictRevisions"), ensure_ascii=False)},
+"tags": {json.dumps(jmdictData.get("tags"), ensure_ascii=False)},
+"words": [
+""" 
+with open(f"{path}", "w", encoding="utf-8-sig") as f:
+    f.write(beforeEntries)
+    for entry in jmdictData["words"]:
+        f.write(f"{json.dumps(entry, ensure_ascii=False, separators=(',', ':'))},\n")
+    f.write("]" + "}")
 
 # remove temporary directory after file is made.
 print("deleting temporary files...")
