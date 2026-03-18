@@ -23,6 +23,17 @@ def downloadAndExtract(url, pathTo="./temp"):
     for fileName in zipfile.namelist():
         return fileName
 
+def fileExists(path):
+    filename, extension = os.path.splitext(path)
+    counter = 1
+
+    while os.path.exists(path):
+        path = filename + "(" + str(counter) + ")" + extension
+        counter += 1
+
+    return path
+
+
 headers = {
     'Accept': 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
@@ -33,6 +44,12 @@ jlptReleaseURL = getLatestReleaseURL("https://api.github.com/repos/Bluskyo/JLPT_
 print("Fetching latest release of JLPT_Vocabulary...")
 jlptResponse = requests.get(jlptReleaseURL)
 jlptData = jlptResponse.json()
+
+# Pitch accent data:
+print("Reading wadoku pitch accents...")
+pitchData = {}
+with open("data/wadoku_pitchdb.json", "r", encoding="utf-8-sig") as file:
+    pitchData = json.load(file)
 
 # Furigana Data:
 furiganaReleaseURL = getLatestReleaseURL("https://api.github.com/repos/Doublevil/JmdictFurigana/releases/latest", "JmdictFurigana.json.zip")
@@ -45,12 +62,7 @@ with open(f"temp/{furiganaFileName}", "r", encoding="utf-8-sig") as file:
     # reading field is redundant, add text and furigana.
     for entry in data:
         furiganaData[entry["text"]] = entry["furigana"]
-
-# Pitch accent data:
-print("Reading wadoku pitch accents...")
-pitchData = {}
-with open("data/wadoku_pitchdb.json", "r", encoding="utf-8-sig") as file:
-    pitchData = json.load(file)
+        
 
 # JMDict data: 
 jmdictReleaseURL = requests.get("https://api.github.com/repos/scriptin/jmdict-simplified/releases/latest", headers=headers)
@@ -72,70 +84,56 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
 
     print("Adding data to JMDict!")
     for entry in jmdictData["words"]:
-        # for every word with kanji add furigana and jlpt level data.
+        entry["pitchAccent"] = {}
+        entry["jlptLevel"] = {}
+
+        # for every word with kanji add furigana, pitch accent and jlpt level data.
         for kanjiObject in entry["kanji"]:
             kanji = kanjiObject.get("text")
+            kanjiObject["furigana"] = []
 
             if furiganaData.get(kanji):
-                if "furigana" not in entry:
-                    entry["furigana"] = [{ kanji : furiganaData[kanji] }]
-                else:
-                    entry["furigana"].append({ kanji : furiganaData[kanji] })
+                kanjiObject["furigana"] = furiganaData[kanji]
 
             if (pitchData.get(kanji)):
-                entry["pitch_accent"] = [{
-                    "hatsuon" : [
-                        pitchData[kanji]["hatsuon"]
-                    ],
-                    "acc_patts" : [
-                        pitchData[kanji]["acc_patts"]
-                    ],
-                    "zo_patts" : [
-                        pitchData[kanji]["zo_patts"]
-                    ]
-                }]
+                entry["pitchAccent"] = {
+                    "hatsuon" : pitchData[kanji]["hatsuon"][0],
+                    "acc_patts" : pitchData[kanji]["acc_patts"][0],
+                    "zo_patts" : pitchData[kanji]["zo_patts"][0]
+                }
 
-            if (not jlptData.get(kanji)):
-                continue
-            if (entry.get("jlpt_level") and jlptData.get(kanji)):
-                entry["jlpt_level"].append({ kanji : jlptData[kanji] })
-            else:
-                entry["jlpt_level"] = [{ kanji : jlptData[kanji] }]
+            if (jlptData.get(kanji)):
+                entry["jlptLevel"] = { kanji : jlptData[kanji] }
 
-        # for every reading/hiragana word add jlptlevel.
+        # for every reading/hiragana word add furigana, pitch accent and jlpt level data.
         for kanaObject in entry["kana"]:
             kana = kanaObject.get("text")
+            kanaObject["furigana"] = []
+
+            if furiganaData.get(kana):
+                kanaObject["furigana"] = furiganaData[kana]
 
             if (pitchData.get(kana)):
-                entry["pitch_accent"] = [{
-                    "hatsuon" : [
-                        pitchData[kana]["hatsuon"]
-                    ],
-                    "acc_patts" : [
-                        pitchData[kana]["acc_patts"]
-                    ],
-                    "zo_patts" : [
-                        pitchData[kana]["zo_patts"]
-                    ]
-                }]
+                entry["pitchAccent"] = {
+                    "hatsuon" : pitchData[kana]["hatsuon"][0],
+                    "acc_patts" : pitchData[kana]["acc_patts"][0],
+                    "zo_patts" : pitchData[kana]["zo_patts"][0]
+                }
 
-            if (not jlptData.get(kana)):
-                continue
-            if (entry.get("jlpt_level") and jlptData.get(kana)):
-                entry["jlpt_level"].append({ kana:jlptData[kana] })
-            else:
-                entry["jlpt_level"] = [{ kana:jlptData[kana] }]
-
-currentDirectory = os.getcwd()
-os.mkdir(f"{currentDirectory}/result")
+            if (jlptData.get(kana)):
+                entry["jlptLevel"] = { kana : jlptData[kana] }
 
 today = date.today().strftime("%Y-%m-%d")
 
-# create file in result folder.
-with open(f"result/jmdictExtended-{today}.json", "w", encoding="utf-8-sig") as writeFile:
+currentDirectory = os.getcwd()
+path = f"{currentDirectory}/result/jmdictExtended-{today}.json"
+path = fileExists(path)
+
+with open(f"{path}", "w", encoding="utf-8-sig") as writeFile:
     json.dump(jmdictData, writeFile, ensure_ascii=False)
 
 # remove temporary directory after file is made.
+print("deleting temporary files...")
 tempDelete = shutil.rmtree("temp/")
 print("Deleted temporary files!")
 print("DONE...")

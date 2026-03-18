@@ -1,2 +1,5 @@
 .secrets
 .vscode
+wordCheck.py
+checkData.json
+result/*
