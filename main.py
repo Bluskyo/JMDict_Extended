@@ -95,14 +95,14 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
                 kanjiObject["furigana"] = furiganaData[kanji]
 
             if (pitchData.get(kanji)): 
-                entry["pitchAccent"][kanji] = {
+                entry["pitchAccent"] = { # if same entry has more than one pitchAccent only gets first one.
                     "hatsuon" : pitchData[kanji]["hatsuon"][0],
                     "acc_patts" : pitchData[kanji]["acc_patts"][0],
                     "zo_patts" : pitchData[kanji]["zo_patts"][0]
                 }
 
             if (jlptData.get(kanji)):
-                entry["jlptLevel"][kanji] = { kanji : jlptData[kanji] }
+                entry["jlptLevel"][kanji] = jlptData[kanji]
 
         # for every reading/hiragana word add furigana, pitch accent and jlpt level data.
         for kanaObject in entry["kana"]:
@@ -120,7 +120,7 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
                 }
 
             if (jlptData.get(kana)):
-                entry["jlptLevel"][kana] = { kana : jlptData[kana] }
+                entry["jlptLevel"][kana] = jlptData[kana] 
 
 today = date.today().strftime("%Y-%m-%d")
 currentDirectory = os.getcwd()

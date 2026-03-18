@@ -12,48 +12,43 @@ JLPT vocabulary in JSON format: https://github.com/Bluskyo/JLPT_Vocabulary <br>
 Parsing of Wadoku XML files: https://github.com/IllDepence/anki_add_pitch/blob/master/wadoku_parse.py
 
 ## Example on an entry with furigana, JLPT-level and pitch accent data added.
-The json follow the same structrue as jmdict-simplified but has these added properties on some entries: 
+The json follows the same structrue as jmdict-simplified but has these added properties:
 
 ```
-  "furigana": [
-    {
-      "挨拶": [
+    "kanji": [
         {
-          "ruby": "挨",
-          "rt": "あい"
-        },
-        {
-          "ruby": "拶",
-          "rt": "さつ"
+            "common": true,
+            "text": "挨拶",
+            "tags": [],
+            "furigana": [  <-----------
+                {
+                    "ruby": "挨",
+                    "rt": "あい"
+                },
+                {
+                    "ruby": "拶",
+                    "rt": "さつ"
+                }
+            ]
         }
-      ]
-    }
-  ],
-  "pitch_accent": [
-    {
-      "hatsuon": [
-        "あい'さつ"
-      ],
-      "acc_patts": [
-        "1"
-      ],
-      "zo_patts": [
-        "HLLLL"
-      ]
-    }
-  ],
-  "jlpt_level": [
-    {
-      "挨拶": "N3"
+    ],
+    {...},
+    "pitchAccent": {  <-----------
+        "hatsuon": "あい'さつ",
+        "acc_patts": "1",
+        "zo_patts": "HLLLL"
     },
-    {
-      "あいさつ": "N4"
+    "jlptLevel": {  <-----------
+        "挨拶": {
+            "挨拶": "N3"
+        },
+        "あいさつ": {
+            "あいさつ": "N4"
+        }
     }
-  ]
 ```
 
 ## Attributions / Data collected from
-
 <li>
 JMdict Japanese-Multilingual Dictionary File by the Electronic Dictionary Research and Development Group: https://www.edrdg.org/
 </li>
