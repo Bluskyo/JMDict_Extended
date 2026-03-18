@@ -139,8 +139,10 @@ beforeEntries = "{" + f"""
 """ 
 with open(f"{path}", "w", encoding="utf-8-sig") as f:
     f.write(beforeEntries)
-    for entry in jmdictData["words"]:
-        f.write(f"{json.dumps(entry, ensure_ascii=False, separators=(',', ':'))},\n")
+    words = jmdictData["words"]
+    for i, entry in enumerate(words):
+        suffix = ",\n" if i < len(words) - 1 else "\n"
+        f.write(f"{json.dumps(entry, ensure_ascii=False, separators=(',', ':'))}{suffix}")
     f.write("]" + "}")
 
 # remove temporary directory after file is made.
