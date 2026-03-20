@@ -39,8 +39,8 @@ The json follows the same structrue as jmdict-simplified but has these added pro
         "zo_patts": "HLLLL"
     },
     "jlptLevel": {  <-----------
-        "挨拶": "N3",
-        "あいさつ": "N4"
+        "kanji": "N3",
+        "kana": "N4"
     }
 ```
 

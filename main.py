@@ -102,7 +102,7 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
                 }
 
             if (jlptData.get(kanji)):
-                entry["jlptLevel"][kanji] = jlptData[kanji]
+                entry["jlptLevel"]["kanji"] = jlptData[kanji]
 
         # for every reading/hiragana word add furigana, pitch accent and jlpt level data.
         for kanaObject in entry["kana"]:
@@ -120,7 +120,7 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
                 }
 
             if (jlptData.get(kana)):
-                entry["jlptLevel"][kana] = jlptData[kana] 
+                entry["jlptLevel"]["kana"] = jlptData[kana] 
 
 today = date.today().strftime("%Y-%m-%d")
 currentDirectory = os.getcwd()
