@@ -29,7 +29,8 @@ The json follows the same structrue as jmdict-simplified but has these added pro
                     "ruby": "拶",
                     "rt": "さつ"
                 }
-            ]
+            ],
+            "jlptLevel": 3 <-----------
         }
     ],
     {...},
@@ -38,10 +39,6 @@ The json follows the same structrue as jmdict-simplified but has these added pro
         "acc_patts": "1",
         "zo_patts": "HLLLL"
     },
-    "jlptLevel": {  <-----------
-        "kanji": "N3",
-        "kana": "N4"
-    }
 ```
 
 ## Attributions / Data collected from

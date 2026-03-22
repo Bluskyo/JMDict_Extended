@@ -84,7 +84,6 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
     print("Adding data to JMDict!")
     for entry in jmdictData["words"]:
         entry["pitchAccent"] = {}
-        entry["jlptLevel"] = {}
 
         # for every word with kanji add furigana, pitch accent and jlpt level data.
         for kanjiObject in entry["kanji"]:
@@ -93,6 +92,8 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
 
             if furiganaData.get(kanji):
                 kanjiObject["furigana"] = furiganaData[kanji]
+            if jlptData.get(kanji):
+                kanjiObject["jlptLevel"] = jlptData[kanji]
 
             if (pitchData.get(kanji)): 
                 entry["pitchAccent"] = { # if same entry has more than one pitchAccent only gets first one.
@@ -100,9 +101,6 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
                     "acc_patts" : pitchData[kanji]["acc_patts"][0],
                     "zo_patts" : pitchData[kanji]["zo_patts"][0]
                 }
-
-            if (jlptData.get(kanji)):
-                entry["jlptLevel"]["kanji"] = jlptData[kanji]
 
         # for every reading/hiragana word add furigana, pitch accent and jlpt level data.
         for kanaObject in entry["kana"]:
@@ -112,15 +110,15 @@ with open(f"temp/{jmdictFileName}", "r", encoding="utf-8-sig") as file:
             if furiganaData.get(kana):
                 kanaObject["furigana"] = furiganaData[kana]
 
+            if jlptData.get(kana):
+                kanaObject["jlptLevel"] = jlptData[kana]
+
             if (pitchData.get(kana)):
                 entry["pitchAccent"] = {
                     "hatsuon" : pitchData[kana]["hatsuon"][0],
                     "acc_patts" : pitchData[kana]["acc_patts"][0],
                     "zo_patts" : pitchData[kana]["zo_patts"][0]
                 }
-
-            if (jlptData.get(kana)):
-                entry["jlptLevel"]["kana"] = jlptData[kana] 
 
 today = date.today().strftime("%Y-%m-%d")
 currentDirectory = os.getcwd()
