@@ -36,8 +36,8 @@ The json follows the same structrue as jmdict-simplified but has these added pro
     {...},
     "pitchAccent": {  <-----------
         "hatsuon": "あい'さつ",
-        "acc_patts": "1",
-        "zo_patts": "HLLLL"
+        "accPatts": "1",
+        "zoPatts": "HLLLL"
     },
 ```
 
