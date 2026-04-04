@@ -8,6 +8,7 @@ from io import BytesIO
 from zipfile import ZipFile, ZIP_DEFLATED
 from urllib.request import urlopen
 from datetime import date
+from collections import defaultdict
 
 def getLatestReleaseURL(url, fileName):
     jlptReleaseURL = requests.get(url, headers=headers)
@@ -32,7 +33,6 @@ def fileExists(path):
         counter += 1
 
     return path
-
 
 headers = {
     'Accept': 'application/vnd.github+json',
@@ -60,9 +60,13 @@ def createDictonary():
 
     with open(f"temp/{furiganaFileName}", "r", encoding="utf-8-sig") as file:
         data = json.load(file)
-        # reading field is redundant, add text and furigana.
+        furiganaLookup = defaultdict(list)
+
         for entry in data:
-            furiganaData[entry["text"]] = entry["furigana"]
+            furiganaLookup[entry["text"]].append({
+                        "reading": entry["reading"],
+                        "furigana": entry["furigana"]
+                    })
 
     # JMDict data: 
     jmdictReleaseURL = requests.get("https://api.github.com/repos/scriptin/jmdict-simplified/releases/latest", headers=headers)
@@ -86,30 +90,34 @@ def createDictonary():
         for entry in jmdictData["words"]:
             entry["pitchAccent"] = {}
 
+            readings = {k.get("text") for k in entry["kana"]}
+
             # for every word with kanji add furigana, pitch accent and jlpt level data.
             for kanjiObject in entry["kanji"]:
                 kanji = kanjiObject.get("text")
                 kanjiObject["furigana"] = []
 
-                if furiganaData.get(kanji):
-                    kanjiObject["furigana"] = furiganaData[kanji]
-                if jlptData.get(kanji):
+                variants = furiganaLookup.get(kanji, [])
+
+                for variant in variants:
+                    if variant["reading"] in readings:
+                        kanjiObject["furigana"] = variant["furigana"]
+                        break
+
+                if kanji in jlptData:
                     kanjiObject["jlptLevel"] = jlptData[kanji]
 
-                if (pitchData.get(kanji)): 
-                    entry["pitchAccent"] = { # if same entry has more than one pitchAccent only gets first one.
+                if (pitchData.get(kanji)):
+                    entry["pitchAccent"] = {
                         "hatsuon" : pitchData[kanji]["hatsuon"][0],
                         "accPatts" : pitchData[kanji]["acc_patts"][0],
                         "zoPatts" : pitchData[kanji]["zo_patts"][0]
                     }
 
+
             # for every reading/hiragana word add furigana, pitch accent and jlpt level data.
             for kanaObject in entry["kana"]:
                 kana = kanaObject.get("text")
-                kanaObject["furigana"] = []
-
-                if furiganaData.get(kana):
-                    kanaObject["furigana"] = furiganaData[kana]
 
                 if jlptData.get(kana):
                     kanaObject["jlptLevel"] = jlptData[kana]
