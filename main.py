@@ -124,6 +124,7 @@ def createDictonary():
                 pitchObject = pitchData.get(kanji)
 
                 if (pitchObject):
+                    if pitchData[kanji]["hira"][0] in readings:
                         kanjiObject["pitchAccent"] = {
                             "hatsuon" : pitchData[kanji]["hatsuon"][0],
                             "accPatts" : pitchData[kanji]["acc_patts"][0],
