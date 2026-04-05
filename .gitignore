@@ -4,3 +4,4 @@ wordCheck.py
 checkData.json
 result/*
 !result/.gitkeep
+test.py

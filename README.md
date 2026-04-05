@@ -12,7 +12,7 @@ JLPT vocabulary in JSON format: https://github.com/Bluskyo/JLPT_Vocabulary <br>
 Parsing of Wadoku XML files: https://github.com/IllDepence/anki_add_pitch/blob/master/wadoku_parse.py
 
 ## Example on an entry with furigana, JLPT-level and pitch accent data added.
-The json follows the same structrue as jmdict-simplified but has these added properties:
+The json follows the same structrue as jmdict-simplified but with these added properties:
 
 ```
     "kanji": [
@@ -30,15 +30,16 @@ The json follows the same structrue as jmdict-simplified but has these added pro
                     "rt": "さつ"
                 }
             ],
-            "jlptLevel": 3 <-----------
+            "jlptLevel": 3, <-----------
+            "pitchAccent": {  <-----------
+                "hatsuon": "あい'さつ",
+                "accPatts": "1",
+                "zoPatts": "HLLLL"
+            },
         }
     ],
     {...},
-    "pitchAccent": {  <-----------
-        "hatsuon": "あい'さつ",
-        "accPatts": "1",
-        "zoPatts": "HLLLL"
-    },
+
 ```
 
 ## Attributions / Data collected from

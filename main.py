@@ -41,7 +41,10 @@ headers = {
 
 def createDictonary():
     # JLPT level data:
-    jlptReleaseURL = getLatestReleaseURL("https://api.github.com/repos/Bluskyo/JLPT_Vocabulary/releases/latest", "JLPTWords.json")
+    jlptReleaseURL = getLatestReleaseURL(
+        "https://api.github.com/repos/Bluskyo/JLPT_Vocabulary/releases/latest", 
+        "JLPTWords.json"
+    )
     print("Fetching latest release of JLPT_Vocabulary...")
     jlptResponse = requests.get(jlptReleaseURL)
     jlptData = jlptResponse.json()
@@ -53,10 +56,12 @@ def createDictonary():
         pitchData = json.load(file)
 
     # Furigana Data:
-    furiganaReleaseURL = getLatestReleaseURL("https://api.github.com/repos/Doublevil/JmdictFurigana/releases/latest", "JmdictFurigana.json.zip")
+    furiganaReleaseURL = getLatestReleaseURL(
+        "https://api.github.com/repos/Doublevil/JmdictFurigana/releases/latest", 
+        "JmdictFurigana.json.zip"
+    )
     print("Fetching latest release of JmdictFurigana...")
     furiganaFileName = downloadAndExtract(furiganaReleaseURL, "./temp")
-    furiganaData = {}
 
     with open(f"temp/{furiganaFileName}", "r", encoding="utf-8-sig") as file:
         data = json.load(file)
@@ -64,12 +69,15 @@ def createDictonary():
 
         for entry in data:
             furiganaLookup[entry["text"]].append({
-                        "reading": entry["reading"],
-                        "furigana": entry["furigana"]
-                    })
+                "reading": entry["reading"],
+                "furigana": entry["furigana"]
+            })
 
     # JMDict data: 
-    jmdictReleaseURL = requests.get("https://api.github.com/repos/scriptin/jmdict-simplified/releases/latest", headers=headers)
+    jmdictReleaseURL = requests.get(
+        "https://api.github.com/repos/scriptin/jmdict-simplified/releases/latest", 
+        headers=headers
+    )
     print("Fetching latest release of jmdict-simplified...")
     fileRegex = r"jmdict-eng-(?!.*common).*\.json\.zip$"
 
@@ -88,14 +96,16 @@ def createDictonary():
 
         print("Adding data to JMDict!")
         for entry in jmdictData["words"]:
-            entry["pitchAccent"] = {}
 
             readings = {k.get("text") for k in entry["kana"]}
 
             # for every word with kanji add furigana, pitch accent and jlpt level data.
             for kanjiObject in entry["kanji"]:
                 kanji = kanjiObject.get("text")
+
                 kanjiObject["furigana"] = []
+                kanjiObject["jlptLevel"]  = None
+                kanjiObject["pitchAccent"] = []
 
                 variants = furiganaLookup.get(kanji, [])
 
@@ -104,26 +114,36 @@ def createDictonary():
                         kanjiObject["furigana"] = variant["furigana"]
                         break
 
-                if kanji in jlptData:
-                    kanjiObject["jlptLevel"] = jlptData[kanji]
+                jlptObject = jlptData.get(kanji)
+                if jlptObject:
+                    for jlptEntry in jlptObject:
+                        if jlptEntry.get("reading") in readings: # check that the kanji and readings match
+                            kanjiObject["jlptLevel"] = jlptEntry.get("level")
+                            break
 
-                if (pitchData.get(kanji)):
-                    entry["pitchAccent"] = {
-                        "hatsuon" : pitchData[kanji]["hatsuon"][0],
-                        "accPatts" : pitchData[kanji]["acc_patts"][0],
-                        "zoPatts" : pitchData[kanji]["zo_patts"][0]
-                    }
+                pitchObject = pitchData.get(kanji)
 
+                if (pitchObject):
+                        kanjiObject["pitchAccent"] = {
+                            "hatsuon" : pitchData[kanji]["hatsuon"][0],
+                            "accPatts" : pitchData[kanji]["acc_patts"][0],
+                            "zoPatts" : pitchData[kanji]["zo_patts"][0]
+                        }
 
             # for every reading/hiragana word add furigana, pitch accent and jlpt level data.
             for kanaObject in entry["kana"]:
                 kana = kanaObject.get("text")
+                kanaObject["jlptLevel"]  = None
+                kanaObject["pitchAccent"] = []
 
-                if jlptData.get(kana):
-                    kanaObject["jlptLevel"] = jlptData[kana]
+                jlptObject = jlptData.get(kana)
+                if jlptObject:
+                    for jlptEntry in jlptObject:
+                        if jlptEntry.get("reading") in readings:
+                            kanaObject["jlptLevel"] = jlptEntry.get("level")
 
                 if (pitchData.get(kana)):
-                    entry["pitchAccent"] = {
+                    kanaObject["pitchAccent"] = {
                         "hatsuon" : pitchData[kana]["hatsuon"][0],
                         "accPatts" : pitchData[kana]["acc_patts"][0],
                         "zoPatts" : pitchData[kana]["zo_patts"][0]
@@ -142,8 +162,7 @@ def createDictonary():
     "dictDate": {json.dumps(jmdictData.get("dictDate"), ensure_ascii=False)},
     "dictRevisions": {json.dumps(jmdictData.get("dictRevisions"), ensure_ascii=False)},
     "tags": {json.dumps(jmdictData.get("tags"), ensure_ascii=False)},
-    "words": [
-    """ 
+    "words": [""" 
     with open(f"{path}", "w", encoding="utf-8-sig") as f:
         f.write(beforeEntries)
         words = jmdictData["words"]
