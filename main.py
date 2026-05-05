@@ -10,12 +10,18 @@ from urllib.request import urlopen
 from datetime import date
 from collections import defaultdict
 
+headers = {
+    'Accept': 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+}
+
 def getLatestReleaseURL(url, fileName):
-    jlptReleaseURL = requests.get(url, headers=headers)
-    for asset in jlptReleaseURL.json()["assets"]:
+    releaseURL = requests.get(url, headers=headers)
+    for asset in releaseURL.json()["assets"]:
         if fileName in asset["browser_download_url"]:
-            jlptReleaseURL = asset["browser_download_url"]
-            return jlptReleaseURL
+            releaseURL = asset["browser_download_url"]
+            print(releaseURL)
+            return releaseURL
 
 def downloadAndExtract(url, pathTo="./temp"):
     response = urlopen(url)
@@ -34,21 +40,20 @@ def fileExists(path):
 
     return path
 
-headers = {
-    'Accept': 'application/vnd.github+json',
-    'X-GitHub-Api-Version': '2022-11-28',
-}
-
 def createDictonary():
     # JLPT level data:
     jlptReleaseURL = getLatestReleaseURL(
         "https://api.github.com/repos/Bluskyo/JLPT_Vocabulary/releases/latest", 
-        "JLPTWords.json"
+        "JLPT_vocab_ALL.json"
     )
     print("Fetching latest release of JLPT_Vocabulary...")
     jlptResponse = requests.get(jlptReleaseURL)
-    jlptData = jlptResponse.json()
-
+    if jlptResponse.status_code == 200:
+        jlptData = jlptResponse.json()
+    else:
+        print("Could not find jlpt data!")
+        jlptData = None
+    
     # Pitch accent data:
     print("Reading wadoku pitch accents...")
     pitchData = {}
