@@ -42,13 +42,10 @@ The json follows the same structrue as jmdict-simplified but with these added pr
 
 ```
 
-## Attributions / Data collected from
-<li>
-JMdict Japanese-Multilingual Dictionary File by the Electronic Dictionary Research and Development Group: https://www.edrdg.org/
-</li>
-<li>
-Japanese Language Proficiency Test Resources by Jonathan Waller: https://www.tanos.co.uk/jlpt/
-</li>
-<li>
-The Wadoku project by Ulrich Apel: http://www.wadoku.de/
-</li>
+## License
+
+The source code in this repository is licensed under the MIT License.
+
+The compiled dataset includes material from multiple third-party sources and
+remains subject to the licenses of those original works. See
+`LICENSE-DATA.md` for details.
